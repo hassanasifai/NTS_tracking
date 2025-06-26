@@ -1,0 +1,10 @@
+fastapi==0.95.2
+uvicorn[standard]==0.22.0
+psycopg[binary]==3.1.12
+psycopg-binary==3.1.12
+python-dotenv==1.0.0
+geojson==3.0.1
+websockets==11.0.3
+starlette==0.27.0
+pydantic==1.10.8
+typing_extensions==4.6.3
