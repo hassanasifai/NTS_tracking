@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Truck Tracker - Pakistan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/ol@10.2.1/ol.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body class="d-flex flex-column vh-100">
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-truck-moving me-2"></i>
+                <span class="brand-text">LORRY TRACK</span>
+                <span class="badge bg-warning text-dark ms-2">PAKISTAN</span>
+            </a>
+            
+            <!-- Collapsible Navbar Content -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-map-marked-alt me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-route me-1"></i> Routes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-history me-1"></i> History</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-chart-line me-1"></i> Analytics</a>
+                    </li>
+                </ul>
+                
+                <form class="d-flex me-2" id="search-form">
+                    <div class="input-group">
+                        <input class="form-control" type="search" id="truck-search" placeholder="Search truck ID..." aria-label="Search">
+                        <button class="btn btn-outline-light" type="submit"><i class="fas fa-search"></i></button>
+                    </div>
+                </form>
+                
+                <div class="dropdown">
+                    <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i> Admin
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-bell me-2"></i> Notifications</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- KPI Cards Row -->
+    <div class="container-fluid py-2 bg-light kpi-container border-bottom">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <div class="kpi-card total-card">
+                    <div class="kpi-icon">
+                        <i class="fas fa-truck-container"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h6>Total Fleet</h6>
+                        <div class="kpi-value" id="total-kpi">0</div>
+                        <div class="kpi-subtext">Active Trucks</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card moving-card">
+                    <div class="kpi-icon">
+                        <i class="fas fa-truck-moving"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h6>Moving</h6>
+                        <div class="kpi-value" id="moving-kpi">0</div>
+                        <div class="kpi-subtext">On Route</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card idle-card">
+                    <div class="kpi-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h6>Idle</h6>
+                        <div class="kpi-value" id="idle-kpi">0</div>
+                        <div class="kpi-subtext">Temporarily Stopped</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card stopped-card">
+                    <div class="kpi-icon">
+                        <i class="fas fa-truck-loading"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h6>Stopped</h6>
+                        <div class="kpi-value" id="stopped-kpi">0</div>
+                        <div class="kpi-subtext">At Destination</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="d-flex flex-grow-1 position-relative">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-white border-end">
+            <div class="sidebar-header">
+                <h5><i class="fas fa-filter me-2"></i>Filters</h5>
+                <button id="toggle-sidebar" class="btn btn-sm btn-outline-secondary"><i class="fas fa-chevron-left"></i></button>
+            </div>
+            
+            <!-- Toggle Button (This will move with the sidebar) -->
+            <div id="sidebar-toggle-container">
+                <button id="show-sidebar" class="sidebar-toggle-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            
+            <!-- Filter Section -->
+            <div class="sidebar-section">
+                <h6 class="section-title">Truck Status</h6>
+                <div class="filter-group">
+                    <div class="form-check custom-check">
+                        <input class="form-check-input" type="checkbox" id="moving-filter" checked>
+                        <label class="form-check-label" for="moving-filter">
+                            <span class="status-indicator moving"></span> Moving
+                            <span class="status-count" id="moving-count">0</span>
+                        </label>
+                    </div>
+                    <div class="form-check custom-check">
+                        <input class="form-check-input" type="checkbox" id="idle-filter" checked>
+                        <label class="form-check-label" for="idle-filter">
+                            <span class="status-indicator idle"></span> Idle
+                            <span class="status-count" id="idle-count">0</span>
+                        </label>
+                    </div>
+                    <div class="form-check custom-check">
+                        <input class="form-check-input" type="checkbox" id="stopped-filter" checked>
+                        <label class="form-check-label" for="stopped-filter">
+                            <span class="status-indicator stopped"></span> Stopped
+                            <span class="status-count" id="stopped-count">0</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Date Filter -->
+            <div class="sidebar-section">
+                <h6 class="section-title">Date Filter</h6>
+                <div class="filter-group date-filter-group">
+                    <div class="mb-2">
+                        <label for="date-from" class="form-label small">From:</label>
+                        <input type="date" class="form-control form-control-sm" id="date-from">
+                    </div>
+                    <div class="mb-2">
+                        <label for="date-to" class="form-label small">To:</label>
+                        <input type="date" class="form-control form-control-sm" id="date-to">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" id="apply-date-filter" class="btn btn-sm btn-primary">Apply Filter</button>
+                        <button type="button" id="clear-date-filter" class="btn btn-sm btn-outline-secondary">Clear</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vehicle ID Filter -->
+            <div class="sidebar-section">
+                <h6 class="section-title">Vehicle ID</h6>
+                <div class="filter-group">
+                    <!-- Search input -->
+                    <input type="text" class="form-control mb-2" id="vehicle-search" placeholder="Search vehicle IDs...">
+                    
+                    <!-- Vehicle dropdown -->
+                    <div class="mb-2">
+                        <label for="vehicle-dropdown" class="form-label small">Available Vehicles:</label>
+                        <select id="vehicle-dropdown" class="form-select form-select-sm">
+                            <option value="" selected disabled>Select a vehicle</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Selected vehicles -->
+                    <div class="mb-2">
+                        <label class="form-label small">Selected Vehicles:</label>
+                        <div id="selected-vehicles" class="selected-vehicles-container">No vehicles selected</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" id="apply-vehicle-filter" class="btn btn-sm btn-primary">Filter &amp; Zoom</button>
+                        <button type="button" id="clear-vehicle-filter" class="btn btn-sm btn-outline-secondary">Clear</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Legend Section -->
+            <div class="sidebar-section">
+                <h6 class="section-title">Legend</h6>
+                <div class="legend-box">
+                    <div class="legend-item">
+                        <div class="legend-truck moving"></div>
+                        <span>Moving truck</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-truck idle"></div>
+                        <span>Idle truck</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-truck stopped"></div>
+                        <span>Stopped truck</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-cluster"></div>
+                        <span>Truck cluster</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="sidebar-section">
+                <h6 class="section-title">Quick Actions</h6>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-sync-alt me-1"></i> Refresh Data</button>
+                    <button class="btn btn-sm btn-outline-success"><i class="fas fa-file-export me-1"></i> Export Report</button>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Map Container -->
+        <div class="position-relative flex-grow-1">
+            <div id="map" class="h-100"></div>
+            
+            <!-- Map Controls -->
+            <div class="map-controls">
+                <button class="map-btn" id="zoom-in"><i class="fas fa-plus"></i></button>
+                <button class="map-btn" id="zoom-out"><i class="fas fa-minus"></i></button>
+                <button class="map-btn" id="center-map"><i class="fas fa-location-crosshairs"></i></button>
+
+            </div>
+            
+            <!-- Truck Info Panel (hidden by default) -->
+            <div id="truck-info-panel" class="d-none">
+                <div class="info-panel-header">
+                    <h5 id="truck-title">Truck Details</h5>
+                    <button id="close-info-panel" class="btn-close"></button>
+                </div>
+                <div class="info-panel-body">
+                    <div class="truck-info-item">
+                        <strong>Truck ID:</strong> <span id="info-truck-id">—</span>
+                    </div>
+                    <div class="truck-info-item">
+                        <strong>Status:</strong> <span id="info-status">—</span>
+                    </div>
+                    <div class="truck-info-item">
+                        <strong>Type:</strong> <span id="info-type">—</span>
+                    </div>
+                    <div class="truck-info-item">
+                        <strong>Speed:</strong> <span id="info-speed">—</span> km/h
+                    </div>
+                    <div class="truck-info-item">
+                        <strong>Fuel Level:</strong> 
+                        <div class="progress">
+                            <div id="info-fuel-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <span id="info-fuel">—</span>%
+                    </div>
+                    <div class="truck-info-item">
+                        <strong>Location:</strong> <span id="info-location">—</span>
+                    </div>
+                </div>
+                <div class="info-panel-footer">
+                    <button class="btn btn-sm btn-primary"><i class="fas fa-phone-alt me-1"></i> Contact Driver</button>
+                    <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-route me-1"></i> View Route</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar Footer -->
+    <footer class="status-bar">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <small><i class="fas fa-circle text-success me-1"></i> System Online</small>
+            </div>
+            <div>
+                <small><i class="fas fa-sync me-1"></i> Last updated: <span id="last-update">Now</span></small>
+            </div>
+            <div>
+                <small><i class="fas fa-map-marker-alt me-1"></i> Map: Pakistan</small>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Connection Error Dialog -->
+    <div class="modal fade" id="connectionError" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Connection Error</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Unable to connect to the tracking server. Please check your connection.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="connectWebSocket()">Retry Connection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Config script must be before app.js -->
+    <script>
+        const CONFIG = {
+            wsUrl: `ws://${window.location.hostname}:8001/ws`,
+            debug: window.location.hostname === 'localhost'
+        };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ol@10.2.1/dist/ol.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/supercluster@8.0.1/dist/supercluster.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
